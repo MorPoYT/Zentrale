@@ -1,0 +1,113 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class DialogueInitial : MonoBehaviour
+{
+    [SerializeField] private DialogueSystem dialogueSystem;
+    public List<DialogueLine> newDialogueLines;
+
+    [Header("Dialogue Features")]
+    [Tooltip("Если true, диалог сработает только один раз")]
+    public bool isDisposable = false;
+    private bool hasBeenTriggered = false;
+    
+    [Header("Audio Sources Settings")]
+    [Tooltip("Если true, автоматически найдет AudioSource игрока по тегу 'Player'")]
+    public bool autoFindPlayerAudio = true;
+    [Tooltip("Если true, автоматически найдет AudioSource NPC через GetComponent'")]
+    public bool isAudioSourceOnObject;
+    
+    [Header("Audio Sources (Optional)")]
+    public AudioSource npcAudioSource;
+    public AudioSource playerAudioSource;
+
+    private void Start()
+    {
+        if (autoFindPlayerAudio && playerAudioSource == null)
+        {
+            FindPlayerAudioSource();
+        }
+        if(isAudioSourceOnObject && npcAudioSource == null) 
+        {
+            npcAudioSource = GetComponent<AudioSource>();
+        }
+    }
+
+    public void TriggerDialogue()
+    {
+        if (isDisposable && hasBeenTriggered)
+        {
+            return;
+        }
+
+        if (dialogueSystem == null)
+        {
+            Debug.LogError("DialogueSystem не назначен в инспекторе!");
+            return;
+        }
+
+        if (autoFindPlayerAudio && playerAudioSource == null)
+        {
+            FindPlayerAudioSource();
+        }
+
+        if (npcAudioSource != null) dialogueSystem.npcAudioSource = npcAudioSource;
+        if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
+        
+        dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
+        dialogueSystem.ActivateDialog();
+
+        if (isDisposable)
+        {
+            hasBeenTriggered = true;
+        }
+    }
+
+    public void OnInteractTrigger()
+    {
+        TriggerDialogue();
+    }
+
+    private void OnEnable()
+    {
+        if (dialogueSystem != null)
+        {
+            dialogueSystem.OnDialogueEnd += ClearDialogueLines;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (dialogueSystem != null)
+        {
+            dialogueSystem.OnDialogueEnd -= ClearDialogueLines;
+        }
+    }
+
+    private void ClearDialogueLines()
+    {
+        dialogueSystem.dialogueLines.Clear();
+    }
+
+    private void FindPlayerAudioSource()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerAudioSource = player.GetComponent<AudioSource>();
+            if (playerAudioSource == null)
+            {
+                Debug.LogWarning("У игрока не найден компонент AudioSource!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Не найден объект с тегом 'Player'!");
+        }
+    }
+
+    public void ResetDialogueState()
+    {
+        hasBeenTriggered = false;
+    }
+}

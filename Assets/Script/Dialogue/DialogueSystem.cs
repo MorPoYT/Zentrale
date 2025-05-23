@@ -8,17 +8,20 @@ using UnityEngine.InputSystem;
 [System.Serializable]
 public class DialogueLine
 {
-    public string speakerName; // Имя говорящего
+    public string speakerName;
     [TextArea(3, 10)] 
-    public string dialogueText; // Текст реплики
-    public AudioClip audioClip; // Аудио для этой реплики
+    public string dialogueText;
+    public AudioClip audioClip;
+    [Tooltip("0 - NPC, 1 - ГГ")]
+    [Range(0, 1)] public int audioTrack = 0; // По умолчанию NPC
 }
 
 public class DialogueSystem : MonoBehaviour
 {
     public TMP_Text nameText; // UI-элемент для имени
     public TMP_Text dialogueText; // UI-элемент для текста
-    public AudioSource audioSource; // Источник звука
+    public AudioSource npcAudioSource; // Аудиодорожка для NPC
+    public AudioSource playerAudioSource; // Аудиодорожка для игрока
     public GameObject dialog_obj;
 
     public List<DialogueLine> dialogueLines; // Список реплик
@@ -31,6 +34,9 @@ public class DialogueSystem : MonoBehaviour
     // Input System
     private PlayerInput playerInput;
     private InputAction interactAction;
+
+    public delegate void DialogueEndHandler();
+    public event DialogueEndHandler OnDialogueEnd;
 
     private void Awake()
     {
@@ -102,9 +108,19 @@ public class DialogueSystem : MonoBehaviour
 
         if (line.audioClip != null)
         {
-            audioSource.Stop();
-            audioSource.clip = line.audioClip;
-            audioSource.Play();
+            // Останавливаем все дорожки
+            if(npcAudioSource != null) {
+                npcAudioSource.Stop();
+            }
+            if(playerAudioSource != null) {
+                playerAudioSource.Stop();
+            }
+            
+            // Воспроизводим на выбранной дорожке
+            if (line.audioTrack == 0)
+                npcAudioSource.PlayOneShot(line.audioClip);
+            else
+                playerAudioSource.PlayOneShot(line.audioClip);
         }
     }
 
@@ -153,7 +169,16 @@ public class DialogueSystem : MonoBehaviour
         dialog_obj.SetActive(false);
         nameText.text = "";
         dialogueText.text = "";
-        audioSource.Stop();
+        if(npcAudioSource != null) {
+            npcAudioSource.Stop();
+        }
+        if(playerAudioSource != null) {
+            playerAudioSource.Stop();
+        }
         Debug.Log("Диалог завершён.");
+        
+        // Вызываем событие завершения диалога
+        OnDialogueEnd?.Invoke();
     }
+
 }
