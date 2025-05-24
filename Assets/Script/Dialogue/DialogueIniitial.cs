@@ -10,6 +10,8 @@ public class DialogueInitial : MonoBehaviour
     [Tooltip("Если true, диалог сработает только один раз")]
     public bool isDisposable = false;
     private bool hasBeenTriggered = false;
+    [Tooltip("Если true, диалог будет автоматически переключаться между репликами по времени")]
+    public bool isCutsceneDialogue = false;
     
     [Header("Audio Sources Settings")]
     [Tooltip("Если true, автоматически найдет AudioSource игрока по тегу 'Player'")]
@@ -55,6 +57,7 @@ public class DialogueInitial : MonoBehaviour
         if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
         
         dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
+        dialogueSystem.isCutsceneDialogue = isCutsceneDialogue; // Передаем настройку катсцены
         dialogueSystem.ActivateDialog();
 
         if (isDisposable)
@@ -62,6 +65,7 @@ public class DialogueInitial : MonoBehaviour
             hasBeenTriggered = true;
         }
     }
+
 
     public void OnInteractTrigger()
     {

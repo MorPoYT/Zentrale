@@ -1,5 +1,4 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.InputSystem;
 
 public class InteractableSystem : MonoBehaviour
@@ -7,86 +6,101 @@ public class InteractableSystem : MonoBehaviour
     [Header("Raycast Settings")]
     [SerializeField] private float _interactionRange = 2f;
     [SerializeField] private LayerMask _interactableLayer;
-    [SerializeField] private float _rayRadius = 0.1f; // Толщина луча (для SphereCast)
+    [SerializeField] private float _rayRadius = 0.1f;
 
     [Header("UI")]
-    [SerializeField] private TMP_Text _hintText;
+    [SerializeField] private GameObject _hintObject;
 
-    private Camera _playerCamera; // Камера игрока (для направления луча)
+    private Camera _playerCamera;
     private ObjectUnityEvent _currentItem;
+    private bool _isLookingAtDoor; // Новое поле для проверки двери
+    private bool _isInteractionAllowed = true;
+
+    public static bool IsInteractionAllowed => _instance._isInteractionAllowed;
+    private static InteractableSystem _instance;
+
+    private void Awake() => _instance = this;
 
     private void Start()
     {
-        // Получаем камеру игрока автоматически (если скрипт на персонаже)
         _playerCamera = Camera.main;
+        UpdateHintVisibility();
     }
 
-    // Вызывается через Input System
     public void OnInteracted(InputAction.CallbackContext context)
     {
-        TryUseItem();
+        if (_isInteractionAllowed)
+        {
+            TryUseItem();
+        }
     }
 
-    private void Update()
-    {
-        CheckNearbyItems();
-    }
+    private void Update() => CheckNearbyItems();
 
     private void CheckNearbyItems()
     {
-        // Сбрасываем текущий предмет
         _currentItem = null;
+        _isLookingAtDoor = false; // Сбрасываем флаг двери
 
-        // Создаем луч из камеры вперед
+        if (!_isInteractionAllowed) 
+        {
+            UpdateHintVisibility();
+            return;
+        }
+
         Ray ray = new Ray(_playerCamera.transform.position, _playerCamera.transform.forward);
         RaycastHit hit;
 
-        // Вариант 1: Обычный Raycast (тонкий луч)
-        // if (Physics.Raycast(ray, out hit, _interactionRange, _interactableLayer))
-
-        // Вариант 2: SphereCast (луч с толщиной, чтобы избежать "промахов")
         if (Physics.SphereCast(ray, _rayRadius, out hit, _interactionRange, _interactableLayer))
         {
+            // Проверяем обычные предметы
             if (hit.collider.TryGetComponent(out ObjectUnityEvent item))
             {
                 _currentItem = item;
             }
+            // Дополнительная проверка на дверь (без вызова методов)
+            else // Просто проверяем наличие компонента
+            {
+                _isLookingAtDoor = true; // Ставим флаг, что смотрим на дверь
+            }
         }
 
-        UpdateHintText();
+        UpdateHintVisibility();
     }
 
-    private void UpdateHintText()
+    private void UpdateHintVisibility()
     {
-        if (_hintText != null)
+        if (_hintObject != null)
         {
-            _hintText.text = _currentItem != null ? _currentItem.InteractionHint : "";
+            // Показываем подсказку если смотрим на предмет ИЛИ на дверь
+            _hintObject.SetActive((_currentItem != null || _isLookingAtDoor) && _isInteractionAllowed);
         }
     }
 
     private void TryUseItem()
     {
-        if (_currentItem != null)
+        if (_currentItem != null && _isInteractionAllowed)
         {
             _currentItem.Use();
         }
+        // На двери просто показываем подсказку, взаимодействие через другой скрипт
     }
 
-    // Визуализация луча в редакторе
+    public static void SetInteractionAllowed(bool allowed)
+    {
+        _instance._isInteractionAllowed = allowed;
+        _instance.UpdateHintVisibility();
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (_playerCamera == null)
             _playerCamera = Camera.main;
 
-        if (_playerCamera != null)
-        {
-            Gizmos.color = Color.cyan;
-            Vector3 rayStart = _playerCamera.transform.position;
-            Vector3 rayEnd = rayStart + _playerCamera.transform.forward * _interactionRange;
-            Gizmos.DrawLine(rayStart, rayEnd);
-
-            // Для SphereCast рисуем "колпак" на конце луча
-            Gizmos.DrawWireSphere(rayEnd, _rayRadius);
-        }
+        Gizmos.color = Color.cyan;
+        Vector3 rayStart = _playerCamera.transform.position;
+        Vector3 rayEnd = rayStart + _playerCamera.transform.forward * _interactionRange;
+        Gizmos.DrawLine(rayStart, rayEnd);
+        Gizmos.DrawWireSphere(rayEnd, _rayRadius);
     }
 }
