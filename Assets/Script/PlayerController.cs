@@ -28,6 +28,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxLookUpAngle = 80f;
     [SerializeField] private float maxLookDownAngle = -80f;
 
+    [Header("Настройки плавного прыжка")]
+    [SerializeField] private float jumpHeight = 1.5f;  // Высота прыжка (в метрах)
+    [SerializeField] private float jumpApexTime = 0.4f; // Время до вершины прыжка
+    [SerializeField] private AnimationCurve jumpCurve = new AnimationCurve(
+        new Keyframe(0f, 0f),
+        new Keyframe(0.5f, 1f),
+        new Keyframe(1f, 0f)
+    ); // Кривая плавности
+
+    private float jumpProgress; // Таймер прыжка (0..1)
+    private bool isJumping; // В процессе прыжка
+
     [Header("Анимация рук")]
     [SerializeField] private Animator animation_PlayerHands;
 
@@ -36,7 +48,6 @@ public class PlayerController : MonoBehaviour
     private Vector2 lookInput;
     public bool isRunning;
     private bool isCrouching;
-    private bool isJumping;
     private float verticalVelocity;
     private float currentHeight;
     private Vector3 originalCameraPosition;
@@ -71,6 +82,14 @@ public class PlayerController : MonoBehaviour
         HandleAnimation();
     }
 
+    private bool IsGrounded()
+    {
+        float rayLength = 2f; // Проверяем чуть ниже ног
+        Vector3 rayStart = transform.position + Vector3.up * 0.1f; // Старт луча чуть выше ступней
+        bool hitGround = Physics.Raycast(rayStart, Vector3.down, rayLength, obstacleMask);
+        return hitGround || characterController.isGrounded; // Двойная проверка
+    }
+
     private void HandleAnimation() {
     	if(isRunning) {
     		animation_PlayerHands.SetBool("IsRunning", true);
@@ -92,21 +111,32 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJumpAndGravity()
     {
-        if (characterController.isGrounded)
+        // Прыжок
+        if (isJumping)
         {
-            verticalVelocity = -1f; // Небольшая сила прижатия к земле
-            
-            if (isJumping)
+            jumpProgress += Time.deltaTime / jumpApexTime;
+            if (jumpProgress >= 1f)
             {
-                verticalVelocity = jumpForce;
                 isJumping = false;
+                jumpProgress = 0f;
             }
+
+            // Расчёт высоты по кривой
+            float jumpPower = jumpCurve.Evaluate(jumpProgress) * jumpHeight;
+            verticalVelocity = jumpPower / Time.deltaTime; // Компенсация Move()
         }
-        else
+        // Гравитация (только если не в прыжке)
+        else if (!characterController.isGrounded)
         {
             verticalVelocity += gravity * Time.deltaTime;
         }
+        // Прижатие к земле
+        else
+        {
+            verticalVelocity = -0.1f;
+        }
 
+        // Применяем движение
         characterController.Move(Vector3.up * verticalVelocity * Time.deltaTime);
     }
 
@@ -169,6 +199,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     // Input System обработчики
     public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
     public void OnLook(InputAction.CallbackContext context) => lookInput = context.ReadValue<Vector2>();
@@ -193,9 +224,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.performed && characterController.isGrounded && !isCrouching)
+        if (context.performed && IsGrounded() && !isCrouching)
         {
             isJumping = true;
+            jumpProgress = 0f;
         }
     }
 }
