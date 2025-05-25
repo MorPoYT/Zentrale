@@ -91,11 +91,13 @@ public class PlayerController : MonoBehaviour
     }
 
     private void HandleAnimation() {
-    	if(isRunning) {
-    		animation_PlayerHands.SetBool("IsRunning", true);
-    	} else {
-    		animation_PlayerHands.SetBool("IsRunning", false);
-    	}
+        if(animation_PlayerHands != null) {
+        	if(isRunning) {
+        		animation_PlayerHands.SetBool("IsRunning", true);
+        	} else {
+        		animation_PlayerHands.SetBool("IsRunning", false);
+        	}
+        }
     }
 
     private void HandleMovement()
