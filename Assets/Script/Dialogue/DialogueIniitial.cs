@@ -12,6 +12,9 @@ public class DialogueInitial : MonoBehaviour
     private bool hasBeenTriggered = false;
     [Tooltip("Если true, диалог будет автоматически переключаться между репликами по времени")]
     public bool isCutsceneDialogue = false;
+    [Tooltip("Если true, катсцена с диалогом проиграется только один раз")]
+    public bool playCutsceneOnlyOnce = false;
+    private bool hasCutsceneBeenPlayed = false;
     
     [Header("Audio Sources Settings")]
     [Tooltip("Если true, автоматически найдет AudioSource игрока по тегу 'Player'")]
@@ -42,6 +45,11 @@ public class DialogueInitial : MonoBehaviour
             return;
         }
 
+        if (playCutsceneOnlyOnce && hasCutsceneBeenPlayed && isCutsceneDialogue)
+        {
+            return;
+        }
+
         if (dialogueSystem == null)
         {
             Debug.LogError("DialogueSystem не назначен в инспекторе!");
@@ -57,15 +65,19 @@ public class DialogueInitial : MonoBehaviour
         if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
         
         dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
-        dialogueSystem.isCutsceneDialogue = isCutsceneDialogue; // Передаем настройку катсцены
+        dialogueSystem.isCutsceneDialogue = isCutsceneDialogue;
         dialogueSystem.ActivateDialog();
 
         if (isDisposable)
         {
             hasBeenTriggered = true;
         }
-    }
 
+        if (isCutsceneDialogue && playCutsceneOnlyOnce)
+        {
+            hasCutsceneBeenPlayed = true;
+        }
+    }
 
     public void OnInteractTrigger()
     {
@@ -113,5 +125,6 @@ public class DialogueInitial : MonoBehaviour
     public void ResetDialogueState()
     {
         hasBeenTriggered = false;
+        hasCutsceneBeenPlayed = false;
     }
 }

@@ -76,12 +76,12 @@ public class DialogueSystem : MonoBehaviour
     {
         if (!dialog_obj.activeSelf) return;
         
-        if (isTyping)
+        if (isTyping && isCutsceneDialogue == false)
         {
             // Пропустить анимацию печатания
             SkipTyping();
         }
-        else
+        else if(!isTyping && isCutsceneDialogue == false)
         {
             // Перейти к следующей реплике
             NextLine();
