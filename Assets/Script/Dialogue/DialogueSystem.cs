@@ -14,6 +14,8 @@ public class DialogueLine
     public AudioClip audioClip;
     [Tooltip("0 - NPC, 1 - ГГ")]
     [Range(0, 1)] public int audioTrack = 0; // По умолчанию NPC
+    [Tooltip("Время показа этой реплики (секунды). Только для катсценных диалогов")]
+    public float displayDuration = 3f;
 }
 
 public class DialogueSystem : MonoBehaviour
@@ -30,7 +32,12 @@ public class DialogueSystem : MonoBehaviour
     private int currentLineIndex = 0;
     private bool isTyping = false;
     private Coroutine typingCoroutine;
-    
+
+    [Tooltip("Если true, диалог будет автоматически переключаться между репликами по времени // НЕ ТРОГАТЬ ЗАСКРИПТОВАНО")]
+    public bool isCutsceneDialogue = false;
+
+    private Coroutine autoAdvanceCoroutine;
+
     // Input System
     private PlayerInput playerInput;
     private InputAction interactAction;
@@ -69,12 +76,12 @@ public class DialogueSystem : MonoBehaviour
     {
         if (!dialog_obj.activeSelf) return;
         
-        if (isTyping)
+        if (isTyping && isCutsceneDialogue == false)
         {
             // Пропустить анимацию печатания
             SkipTyping();
         }
-        else
+        else if(!isTyping && isCutsceneDialogue == false)
         {
             // Перейти к следующей реплике
             NextLine();
@@ -122,6 +129,16 @@ public class DialogueSystem : MonoBehaviour
             else
                 playerAudioSource.PlayOneShot(line.audioClip);
         }
+        
+        // Для катсценного диалога запускаем автоматический переход
+        if (isCutsceneDialogue)
+        {
+            if (autoAdvanceCoroutine != null)
+            {
+                StopCoroutine(autoAdvanceCoroutine);
+            }
+            autoAdvanceCoroutine = StartCoroutine(AutoAdvance(line.displayDuration));
+        }
     }
 
     IEnumerator TypeText(string text)
@@ -138,6 +155,12 @@ public class DialogueSystem : MonoBehaviour
         isTyping = false;
     }
 
+    IEnumerator AutoAdvance(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        NextLine();
+    }
+
     void SkipTyping()
     {
         if (typingCoroutine != null)
@@ -151,6 +174,13 @@ public class DialogueSystem : MonoBehaviour
 
     void NextLine()
     {
+        // Останавливаем авто-переход, если он был
+        if (autoAdvanceCoroutine != null)
+        {
+            StopCoroutine(autoAdvanceCoroutine);
+            autoAdvanceCoroutine = null;
+        }
+        
         currentLineIndex++;
         
         if (currentLineIndex < dialogueLines.Count)
@@ -176,9 +206,13 @@ public class DialogueSystem : MonoBehaviour
             playerAudioSource.Stop();
         }
         Debug.Log("Диалог завершён.");
+        Invoke("EndHideHint", 1f);
         
         // Вызываем событие завершения диалога
         OnDialogueEnd?.Invoke();
     }
 
+    void EndHideHint() {
+        InteractableSystem.SetInteractionAllowed(true);
+    }
 }
