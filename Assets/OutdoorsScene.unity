@@ -20856,6 +20856,7 @@ MonoBehaviour:
     displayDuration: 3
   isDisposable: 1
   isCutsceneDialogue: 0
+  playCutsceneOnlyOnce: 0
   autoFindPlayerAudio: 1
   isAudioSourceOnObject: 1
   npcAudioSource: {fileID: 0}
@@ -51755,6 +51756,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   isDialog: 1
+  _isOneTimeAction: 0
 --- !u!65 &1530490878
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -51873,6 +51875,7 @@ MonoBehaviour:
     displayDuration: 3
   isDisposable: 0
   isCutsceneDialogue: 0
+  playCutsceneOnlyOnce: 0
   autoFindPlayerAudio: 1
   isAudioSourceOnObject: 1
   npcAudioSource: {fileID: 0}
@@ -52165,6 +52168,7 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
   isDialog: 0
+  _isOneTimeAction: 0
 --- !u!1 &1833236078
 GameObject:
   m_ObjectHideFlags: 0
@@ -62442,6 +62446,7 @@ MonoBehaviour:
     displayDuration: 3
   isDisposable: 0
   isCutsceneDialogue: 0
+  playCutsceneOnlyOnce: 0
   autoFindPlayerAudio: 1
   isAudioSourceOnObject: 0
   npcAudioSource: {fileID: 0}

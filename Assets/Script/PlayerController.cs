@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance { get; private set; }
     [Header("Компоненты")]
     [SerializeField] private CharacterController characterController;
     [SerializeField] private Transform cameraPivot;
@@ -41,7 +42,8 @@ public class PlayerController : MonoBehaviour
     private bool isJumping; // В процессе прыжка
 
     [Header("Анимация рук")]
-    [SerializeField] private Animator animation_PlayerHands;
+    [SerializeField] private Animator AnimationPlayer;
+    public bool isOpenMenu;
 
     // Приватные переменные
     private Vector2 moveInput;
@@ -54,8 +56,20 @@ public class PlayerController : MonoBehaviour
     private float xRotation;
     private float yRotation;
 
+    //ОЧЕНЬ ВАЖНО [*****]
+    [HideInInspector]
+    [SerializeField] public bool isControllUnenabled;
+
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            return;
+        }
         // Инициализация компонентов
         characterController = GetComponent<CharacterController>();
         playerCamera = cameraPivot.GetComponentInChildren<Camera>();
@@ -73,13 +87,17 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
     }
 
+    public void CloseAllAnimation() {
+        AnimationPlayer.Rebind();
+        AnimationPlayer.Update(0f);
+    }
+
     private void Update()
     {
         HandleMovement();
         HandleJumpAndGravity();
         HandleCrouching();
         HandleCameraRotation();
-        HandleAnimation();
     }
 
     private bool IsGrounded()
@@ -88,16 +106,6 @@ public class PlayerController : MonoBehaviour
         Vector3 rayStart = transform.position + Vector3.up * 0.1f; // Старт луча чуть выше ступней
         bool hitGround = Physics.Raycast(rayStart, Vector3.down, rayLength, obstacleMask);
         return hitGround || characterController.isGrounded; // Двойная проверка
-    }
-
-    private void HandleAnimation() {
-        if(animation_PlayerHands != null) {
-        	if(isRunning) {
-        		animation_PlayerHands.SetBool("IsRunning", true);
-        	} else {
-        		animation_PlayerHands.SetBool("IsRunning", false);
-        	}
-        }
     }
 
     private void HandleMovement()
@@ -209,7 +217,7 @@ public class PlayerController : MonoBehaviour
     
     public void OnCrouch(InputAction.CallbackContext context)
 	{
-	    if (context.performed)
+	    if (context.performed  && isControllUnenabled == false)
 	    {
 	        // Переключаем состояние приседания
 	        isCrouching = !isCrouching;
@@ -223,10 +231,21 @@ public class PlayerController : MonoBehaviour
 	    }
 	}
 
+    public void OnMenu(InputAction.CallbackContext context)
+    {
+        if (context.performed && isControllUnenabled == false)
+        {
+            isOpenMenu = !isOpenMenu;
+
+            if(AnimationPlayer != null) {
+                AnimationPlayer.SetBool("openNotebook", isOpenMenu);
+            }
+        }
+    }
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.performed && IsGrounded() && !isCrouching)
+        if (context.performed && IsGrounded() && !isCrouching && isControllUnenabled == false)
         {
             isJumping = true;
             jumpProgress = 0f;
