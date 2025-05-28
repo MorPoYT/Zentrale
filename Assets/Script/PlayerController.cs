@@ -83,8 +83,8 @@ public class PlayerController : MonoBehaviour
             originalCameraPosition = playerCamera.transform.localPosition;
         }
         
-        // Cursor.lockState = CursorLockMode.Locked;
-        // Cursor.visible = false;
+         Cursor.lockState = CursorLockMode.Locked;
+         Cursor.visible = false;
     }
 
     public void CloseAllAnimation() {

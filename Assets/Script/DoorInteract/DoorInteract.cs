@@ -12,16 +12,14 @@ public class DoorInteract : MonoBehaviour
     [Header("Door Settings")]
     public Transform doorPivot;
     public RotationAxis rotationAxis = RotationAxis.Z;
-    public float maxOpenAngle = 90f;
+    public float maxOpenAngle = 90f; // +90 для левой двери, -90 для правой
     public float mouseSensitivity = 0.5f;
     public float rotationSmoothing = 5f;
-    public bool autoInvertDirection = true; // Автоматически инвертировать направление
+    public bool autoInvertDirection = true;
 
     [Header("Direction")]
     public bool canOpenInward = true;
     public bool canOpenOutward = true;
-
-    public float directionOpenStart, directionOpenEnd;
 
     private bool isRotating;
     private float targetAngle;
@@ -36,7 +34,7 @@ public class DoorInteract : MonoBehaviour
         currentAngle = 0f;
         targetAngle = 0f;
         initialRotation = doorPivot.localRotation.eulerAngles;
-        playerTransform = Camera.main.transform; // Получаем трансформ игрока (камеры)
+        playerTransform = Camera.main.transform;
     }
 
     private void OnEnable()
@@ -63,20 +61,12 @@ public class DoorInteract : MonoBehaviour
             isRotating = true;
             mouseDeltaSum = 0f;
 
-            // Определяем нужно ли инвертировать направление
             if (autoInvertDirection)
             {
-                // Вектор от двери к игроку
                 Vector3 toPlayer = playerTransform.position - doorPivot.position;
-                // Нормаль двери (направление "наружу")
                 Vector3 doorNormal = doorPivot.TransformDirection(Vector3.forward);
-                
-                // Если игрок находится с "внутренней" стороны двери (скалярное произведение отрицательное)
-                shouldInvertDirection = Vector3.Dot(toPlayer, doorNormal) < 0;
-            }
-            else
-            {
-                shouldInvertDirection = false;
+                // Для левой двери (maxOpenAngle > 0) и правой (maxOpenAngle < 0) — корректная инверсия
+                shouldInvertDirection = (Vector3.Dot(toPlayer, doorNormal) < 0);
             }
         }
     }
@@ -91,14 +81,30 @@ public class DoorInteract : MonoBehaviour
         if (isRotating)
         {
             float mouseX = lookAction.action.ReadValue<Vector2>().x;
-            float direction = shouldInvertDirection ? directionOpenStart : directionOpenEnd;
-            mouseDeltaSum += direction * mouseX * mouseSensitivity;
+            // Для левой двери (maxOpenAngle > 0): мышь вправо → дверь вправо (+)
+            // Для правой двери (maxOpenAngle < 0): мышь влево → дверь влево (-)
+            // Инвертируем движение мыши для левой двери (maxOpenAngle > 0)
+            float mouseDelta = mouseX * mouseSensitivity;
+            if (maxOpenAngle > 0f)
+                mouseDelta *= -1f; // Левая дверь: мышь вправо → дверь влево
+
+            mouseDeltaSum += mouseDelta;
 
             float anglePercentage = Mathf.Clamp(mouseDeltaSum / 1000f, -1f, 1f);
-            targetAngle = anglePercentage * maxOpenAngle;
+            targetAngle = anglePercentage * Mathf.Abs(maxOpenAngle);
 
-            if (!canOpenInward) targetAngle = Mathf.Clamp(targetAngle, 0, maxOpenAngle);
-            if (!canOpenOutward) targetAngle = Mathf.Clamp(targetAngle, -maxOpenAngle, 0);
+            // Применяем инверсию, если игрок с "обратной" стороны
+            if (shouldInvertDirection)
+                targetAngle *= -1;
+
+            // Ограничения
+            if (!canOpenInward) 
+                targetAngle = Mathf.Clamp(targetAngle, 0, Mathf.Abs(maxOpenAngle));
+            if (!canOpenOutward) 
+                targetAngle = Mathf.Clamp(targetAngle, -Mathf.Abs(maxOpenAngle), 0);
+
+            // Восстанавливаем знак для правой двери
+            targetAngle *= Mathf.Sign(maxOpenAngle);
         }
 
         currentAngle = Mathf.Lerp(currentAngle, targetAngle, rotationSmoothing * Time.deltaTime);
