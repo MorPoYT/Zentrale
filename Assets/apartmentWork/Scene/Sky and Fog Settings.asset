@@ -21,22 +21,22 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 2.32
+    m_Value: 1.34
   directLightingStrength:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   radius:
     m_OverrideState: 1
-    m_Value: 3.55
+    m_Value: 2.77
   spatialBilateralAggressiveness:
     m_OverrideState: 1
-    m_Value: 0.087
+    m_Value: 0
   temporalAccumulation:
     m_OverrideState: 1
     m_Value: 1
   ghostingReduction:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   blurSharpness:
     m_OverrideState: 1
     m_Value: 0.1
@@ -62,7 +62,7 @@ MonoBehaviour:
     m_Value: 1
   m_MaximumRadiusInPixels:
     m_OverrideState: 1
-    m_Value: 256
+    m_Value: 176
   m_BilateralUpsample:
     m_OverrideState: 1
     m_Value: 1
@@ -81,6 +81,50 @@ MonoBehaviour:
   m_DenoiserRadius:
     m_OverrideState: 1
     m_Value: 0.65
+--- !u!114 &-3887936369604362845
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
+  m_Name: HDShadowSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  interCascadeBorders: 1
+  maxShadowDistance:
+    m_OverrideState: 1
+    m_Value: 250
+  directionalTransmissionMultiplier:
+    m_OverrideState: 1
+    m_Value: 1
+  cascadeShadowSplitCount:
+    m_OverrideState: 1
+    m_Value: 4
+  cascadeShadowSplit0:
+    m_OverrideState: 1
+    m_Value: 0.05
+  cascadeShadowSplit1:
+    m_OverrideState: 1
+    m_Value: 0.15
+  cascadeShadowSplit2:
+    m_OverrideState: 1
+    m_Value: 0.3
+  cascadeShadowBorder0:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder1:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder2:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder3:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &-3587281108479593465
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -462,6 +506,7 @@ MonoBehaviour:
   - {fileID: -4887802997783565587}
   - {fileID: 1289152173395896336}
   - {fileID: -3587281108479593465}
+  - {fileID: -3887936369604362845}
 --- !u!114 &1289152173395896336
 MonoBehaviour:
   m_ObjectHideFlags: 3

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 public class DialogueInitial : MonoBehaviour
 {
@@ -10,21 +11,31 @@ public class DialogueInitial : MonoBehaviour
     [Tooltip("Если true, диалог сработает только один раз")]
     public bool isDisposable = false;
     private bool hasBeenTriggered = false;
+
     [Tooltip("Если true, диалог будет автоматически переключаться между репликами по времени")]
     public bool isCutsceneDialogue = false;
+
     [Tooltip("Если true, катсцена с диалогом проиграется только один раз")]
     public bool playCutsceneOnlyOnce = false;
     private bool hasCutsceneBeenPlayed = false;
-    
+
     [Header("Audio Sources Settings")]
     [Tooltip("Если true, автоматически найдет AudioSource игрока по тегу 'Player'")]
     public bool autoFindPlayerAudio = true;
-    [Tooltip("Если true, автоматически найдет AudioSource NPC через GetComponent'")]
+
+    [Tooltip("Если true, автоматически найдет AudioSource NPC через GetComponent")]
     public bool isAudioSourceOnObject;
-    
+
     [Header("Audio Sources (Optional)")]
     public AudioSource npcAudioSource;
     public AudioSource playerAudioSource;
+
+    [Header("End Action Settings")]
+    [Tooltip("Если true, UnityEvent сработает в конце диалога")]
+    public bool EndAction = false;
+
+    [Tooltip("Событие, которое сработает в конце диалога, если EndAction = true")]
+    public UnityEvent onDialogueEndEvent;
 
     private void Start()
     {
@@ -32,7 +43,7 @@ public class DialogueInitial : MonoBehaviour
         {
             FindPlayerAudioSource();
         }
-        if(isAudioSourceOnObject && npcAudioSource == null) 
+        if (isAudioSourceOnObject && npcAudioSource == null)
         {
             npcAudioSource = GetComponent<AudioSource>();
         }
@@ -63,7 +74,7 @@ public class DialogueInitial : MonoBehaviour
 
         if (npcAudioSource != null) dialogueSystem.npcAudioSource = npcAudioSource;
         if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
-        
+
         dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
         dialogueSystem.isCutsceneDialogue = isCutsceneDialogue;
         dialogueSystem.ActivateDialog();
@@ -88,7 +99,7 @@ public class DialogueInitial : MonoBehaviour
     {
         if (dialogueSystem != null)
         {
-            dialogueSystem.OnDialogueEnd += ClearDialogueLines;
+            dialogueSystem.OnDialogueEnd += HandleDialogueEnd;
         }
     }
 
@@ -96,7 +107,17 @@ public class DialogueInitial : MonoBehaviour
     {
         if (dialogueSystem != null)
         {
-            dialogueSystem.OnDialogueEnd -= ClearDialogueLines;
+            dialogueSystem.OnDialogueEnd -= HandleDialogueEnd;
+        }
+    }
+
+    private void HandleDialogueEnd()
+    {
+        ClearDialogueLines();
+
+        if (EndAction)
+        {
+            onDialogueEndEvent?.Invoke();
         }
     }
 

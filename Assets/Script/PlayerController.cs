@@ -83,8 +83,8 @@ public class PlayerController : MonoBehaviour
             originalCameraPosition = playerCamera.transform.localPosition;
         }
         
-         Cursor.lockState = CursorLockMode.Locked;
-         Cursor.visible = false;
+         // Cursor.lockState = CursorLockMode.Locked;
+         // Cursor.visible = false;
     }
 
     public void CloseAllAnimation() {
@@ -193,16 +193,19 @@ public class PlayerController : MonoBehaviour
 
     private void HandleCameraRotation()
     {
-        if (lookInput == Vector2.zero) return;
+        if (lookInput == Vector2.zero || isControllUnenabled) return;
 
+        // Горизонтальное вращение (влево/вправо)
         yRotation += lookInput.x * mouseXSensitivity;
+        
+        // Вертикальное вращение (вверх/вниз)
         xRotation -= lookInput.y * mouseYSensitivity;
         xRotation = Mathf.Clamp(xRotation, maxLookDownAngle, maxLookUpAngle);
 
-        // Поворот всего тела по горизонтали
+        // Поворачиваем весь объект игрока только по горизонтали
         transform.rotation = Quaternion.Euler(0, yRotation, 0);
-        
-        // Наклон камеры по вертикали
+
+        // Наклоняем только камеру по вертикали
         if (cameraPivot != null)
         {
             cameraPivot.localRotation = Quaternion.Euler(xRotation, 0, 0);

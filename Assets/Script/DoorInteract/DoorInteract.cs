@@ -16,6 +16,7 @@ public class DoorInteract : MonoBehaviour
     public float mouseSensitivity = 0.5f;
     public float rotationSmoothing = 5f;
     public bool autoInvertDirection = true;
+    public bool isLeftToRight = false; // Направление открывания: false - справа налево, true - слева направо
 
     [Header("Direction")]
     public bool canOpenInward = true;
@@ -65,7 +66,6 @@ public class DoorInteract : MonoBehaviour
             {
                 Vector3 toPlayer = playerTransform.position - doorPivot.position;
                 Vector3 doorNormal = doorPivot.TransformDirection(Vector3.forward);
-                // Для левой двери (maxOpenAngle > 0) и правой (maxOpenAngle < 0) — корректная инверсия
                 shouldInvertDirection = (Vector3.Dot(toPlayer, doorNormal) < 0);
             }
         }
@@ -81,12 +81,19 @@ public class DoorInteract : MonoBehaviour
         if (isRotating)
         {
             float mouseX = lookAction.action.ReadValue<Vector2>().x;
-            // Для левой двери (maxOpenAngle > 0): мышь вправо → дверь вправо (+)
-            // Для правой двери (maxOpenAngle < 0): мышь влево → дверь влево (-)
-            // Инвертируем движение мыши для левой двери (maxOpenAngle > 0)
             float mouseDelta = mouseX * mouseSensitivity;
-            if (maxOpenAngle > 0f)
-                mouseDelta *= -1f; // Левая дверь: мышь вправо → дверь влево
+            
+            // Применяем направление открывания в зависимости от isLeftToRight
+            if (isLeftToRight)
+            {
+                // Слева направо: мышь вправо → дверь вправо
+                mouseDelta *= -1f;
+            }
+            else
+            {
+                // Справа налево: мышь влево → дверь вправо
+                mouseDelta *= 1f;
+            }
 
             mouseDeltaSum += mouseDelta;
 
