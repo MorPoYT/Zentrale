@@ -37,6 +37,10 @@ public class DialogueInitial : MonoBehaviour
     [Tooltip("Событие, которое сработает в конце диалога, если EndAction = true")]
     public UnityEvent onDialogueEndEvent;
 
+    // --- Новое поле ---
+    private List<DialogueLine> currentActiveDialogueLines = null;
+    // ------------------
+
     private void Start()
     {
         if (autoFindPlayerAudio && playerAudioSource == null)
@@ -76,6 +80,9 @@ public class DialogueInitial : MonoBehaviour
         if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
 
         dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
+        // --- Сохраняем активные строки ---
+        currentActiveDialogueLines = new List<DialogueLine>(newDialogueLines);
+        // ---------------------------------
         dialogueSystem.isCutsceneDialogue = isCutsceneDialogue;
         dialogueSystem.ActivateDialog();
 
@@ -113,11 +120,20 @@ public class DialogueInitial : MonoBehaviour
 
     private void HandleDialogueEnd()
     {
-        ClearDialogueLines();
-
-        if (EndAction)
+        // Проверяем, есть ли активный диалог
+        if (currentActiveDialogueLines != null && currentActiveDialogueLines.Count > 0)
         {
-            onDialogueEndEvent?.Invoke();
+            ClearDialogueLines();
+
+            if (EndAction)
+            {
+                onDialogueEndEvent?.Invoke();
+                Debug.Log("Dialogue ended and event invoked.");
+            }
+
+            // Очистка состояния
+            currentActiveDialogueLines.Clear();
+            currentActiveDialogueLines = null;
         }
     }
 
@@ -147,5 +163,6 @@ public class DialogueInitial : MonoBehaviour
     {
         hasBeenTriggered = false;
         hasCutsceneBeenPlayed = false;
+        currentActiveDialogueLines = null;
     }
 }
