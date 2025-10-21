@@ -13,21 +13,21 @@ public class DialogueLine
     public string dialogueText;
     public AudioClip audioClip;
     [Tooltip("0 - NPC, 1 - ГГ")]
-    [Range(0, 1)] public int audioTrack = 0; // По умолчанию NPC
+    [Range(0, 1)] public int audioTrack = 0;
     [Tooltip("Время показа этой реплики (секунды). Только для катсценных диалогов")]
     public float displayDuration = 3f;
 }
 
 public class DialogueSystem : MonoBehaviour
 {
-    public TMP_Text nameText; // UI-элемент для имени
-    public TMP_Text dialogueText; // UI-элемент для текста
-    public AudioSource npcAudioSource; // Аудиодорожка для NPC
-    public AudioSource playerAudioSource; // Аудиодорожка для игрока
+    public TMP_Text nameText;
+    public TMP_Text dialogueText;
+    public AudioSource npcAudioSource;
+    public AudioSource playerAudioSource;
     public GameObject dialog_obj;
 
-    public List<DialogueLine> dialogueLines; // Список реплик
-    public float typingSpeed = 0.05f; // Скорость печатания текста
+    public List<DialogueLine> dialogueLines;
+    public float typingSpeed = 0.05f;
 
     private int currentLineIndex = 0;
     private bool isTyping = false;
@@ -65,7 +65,6 @@ public class DialogueSystem : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Отписываемся от событий при уничтожении объекта
         if (interactAction != null)
         {
             interactAction.performed -= OnInteractPerformed;
@@ -78,12 +77,10 @@ public class DialogueSystem : MonoBehaviour
         
         if (isTyping && isCutsceneDialogue == false)
         {
-            // Пропустить анимацию печатания
             SkipTyping();
         }
         else if(!isTyping && isCutsceneDialogue == false)
         {
-            // Перейти к следующей реплике
             NextLine();
         }
     }
@@ -115,7 +112,6 @@ public class DialogueSystem : MonoBehaviour
 
         if (line.audioClip != null)
         {
-            // Останавливаем все дорожки
             if(npcAudioSource != null) {
                 npcAudioSource.Stop();
             }
@@ -123,14 +119,12 @@ public class DialogueSystem : MonoBehaviour
                 playerAudioSource.Stop();
             }
             
-            // Воспроизводим на выбранной дорожке
             if (line.audioTrack == 0)
                 npcAudioSource.PlayOneShot(line.audioClip);
             else
                 playerAudioSource.PlayOneShot(line.audioClip);
         }
         
-        // Для катсценного диалога запускаем автоматический переход
         if (isCutsceneDialogue)
         {
             if (autoAdvanceCoroutine != null)
@@ -174,7 +168,6 @@ public class DialogueSystem : MonoBehaviour
 
     void NextLine()
     {
-        // Останавливаем авто-переход, если он был
         if (autoAdvanceCoroutine != null)
         {
             StopCoroutine(autoAdvanceCoroutine);
@@ -189,7 +182,6 @@ public class DialogueSystem : MonoBehaviour
         }
         else
         {
-            // Диалог закончен
             EndDialogue();
         }
     }
@@ -208,7 +200,6 @@ public class DialogueSystem : MonoBehaviour
         Debug.Log("Диалог завершён.");
         Invoke("EndHideHint", 1f);
         
-        // Вызываем событие завершения диалога
         OnDialogueEnd?.Invoke();
     }
 

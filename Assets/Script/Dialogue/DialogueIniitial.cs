@@ -37,9 +37,7 @@ public class DialogueInitial : MonoBehaviour
     [Tooltip("Событие, которое сработает в конце диалога, если EndAction = true")]
     public UnityEvent onDialogueEndEvent;
 
-    // --- Новое поле ---
     private List<DialogueLine> currentActiveDialogueLines = null;
-    // ------------------
 
     private void Start()
     {
@@ -80,9 +78,7 @@ public class DialogueInitial : MonoBehaviour
         if (playerAudioSource != null) dialogueSystem.playerAudioSource = playerAudioSource;
 
         dialogueSystem.dialogueLines = new List<DialogueLine>(newDialogueLines);
-        // --- Сохраняем активные строки ---
         currentActiveDialogueLines = new List<DialogueLine>(newDialogueLines);
-        // ---------------------------------
         dialogueSystem.isCutsceneDialogue = isCutsceneDialogue;
         dialogueSystem.ActivateDialog();
 
@@ -120,7 +116,6 @@ public class DialogueInitial : MonoBehaviour
 
     private void HandleDialogueEnd()
     {
-        // Проверяем, есть ли активный диалог
         if (currentActiveDialogueLines != null && currentActiveDialogueLines.Count > 0)
         {
             ClearDialogueLines();
@@ -128,7 +123,6 @@ public class DialogueInitial : MonoBehaviour
             if (EndAction)
             {
                 onDialogueEndEvent?.Invoke();
-                Debug.Log("Dialogue ended and event invoked.");
             }
 
             // Очистка состояния
@@ -150,12 +144,12 @@ public class DialogueInitial : MonoBehaviour
             playerAudioSource = player.GetComponent<AudioSource>();
             if (playerAudioSource == null)
             {
-                Debug.LogWarning("У игрока не найден компонент AudioSource!");
+                Debug.LogWarning("не найден компонент AudioSource!");
             }
         }
         else
         {
-            Debug.LogWarning("Не найден объект с тегом 'Player'!");
+            Debug.LogWarning("объект с тегом 'Player'!");
         }
     }
 
